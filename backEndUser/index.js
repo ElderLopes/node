@@ -1,8 +1,12 @@
+
 const express = require('express')
 const uuid = require('uuid')
+const cors = require('cors')
 const app = express()
 const port = 3001
-app.use(express.json())
+app.use(express.json());
+app.use(cors());
+
 
 
 
@@ -20,66 +24,47 @@ const checkIdUser = (request, response, next) => {
 }
 const users = []
 
-app.post('/user', (request, response) => {
-
-    const { name, age } = request.body
-    const userId = uuid.v4()
-    const newUser = {
-        id: userId,
-        name,
-        age,
-    }
-    users.push(newUser)
-    return response.json(newUser)
-})
-
-app.get('/user', (request, response) => {
+app.get('/users', (request, response) => {
     return response.json(users)
 })
 
-app.put('/user/:id', checkIdUser, (request, response) => {
 
+app.post('/users', (request, response) => {
+    const { name, age } = request.body
+
+    const user = {id: uuid.v4(), name,age}
+    users.push(user)
+    return response.json(user)
+})
+
+app.put('/users/:id', (request, response) => {
+    const { id } = request.params
     const { name, age} = request.body
-    const userIndex = request.userIndex
 
-    const updateUser = { id:request.userId, name, age, }
-    if (userIndex < 0) {
-        return response.status(404).json({ message: "User Not Founs😥😥" })//caso nao encontre tem esse if de ero
+    const updateUser = {id, name, age}
+
+    const index = users.findIndex(user => user.id === id)
+
+    if (index < 0) {
+        return response.status(404).json({ message: "User Not Found 😥😥" })//caso nao encontre tem esse if de ero
     }
-    users[userIndex] = updateUser
+    users[index] = updateUser
 
     return response.json(updateUser);
 });
 
-app.delete('/user/:id',checkIdUser, (request, response) => {
-    const userIndex = request.userIndex
-    if (userIndex < 0) {
-        return response.status(404).json({ message: "User Not Founs" })//caso nao encontre tem esse if de ero
+app.delete('/users/:id',(request, response) => {
+    const { id } = request.params
+    const index = users.findIndex(user => user.id ===id)
+    if (index < 0) {
+        return response.status(404).json({ message: "User Not Found" })//caso nao encontre tem esse if de ero
     }
 
-    users.splice(userIndex, 1)
+    users.splice(index, 1)
 
-    return response.status(204).json(users)
+    return response.status(204).json()
 })
 
-app.get('/user/:id',checkIdUser, (request, response) => {
-    const userId = request.userId
-    const user = users.find(user => user.id === userId)
-    
-    
-  
-    return response.json(user);
-  });
-
-  
-app.patch('/user/:id', checkIdUser, (request, response) => {
-    const userIndex = request.userIndex;
-    const userToUpdate = users[userIndex];
-  
-    userToUpdate.status = 'Pronto';
-  
-    return response.json(userToUpdate);
-})
 
 app.listen(port, () => {
 
